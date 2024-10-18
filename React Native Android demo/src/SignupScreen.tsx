@@ -29,17 +29,21 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
 
   // Check if a user exists on component mount and trigger biometric login if a user exists
   useEffect(() => {
+    setLoading(true);
     HawcxModule.checkLastUser()
       .then((result: string) => {
-        if (result === 'Biometric login successful') {
+        if (result.includes('Login successful for user')) {
           // Navigate to Home if biometric login is successful
+          setLoading(false);
           navigation.replace('Home');
         } else if (result === 'SHOW_EMAIL_SIGN_IN_SCREEN') {
           // If user exists but needs to sign in manually, navigate to the SignIn screen
+          setLoading(false)
           navigation.navigate('SignIn');
         }
       })
       .catch((error: any) => {
+        setLoading(false);
         console.error('Error checking last user', error);
       });
   }, []);
@@ -62,6 +66,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Sign Up</Text>
       <Text>Enter your Email to Sign Up:</Text>
       <TextInput
         style={styles.input}

@@ -176,7 +176,7 @@ class HawcxModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
 
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         super.onAuthenticationSucceeded(result)
-                        promise.resolve("Biometric login successful")
+                        //promise.resolve("Biometric login successful")
                         callback.run()
                     }
 

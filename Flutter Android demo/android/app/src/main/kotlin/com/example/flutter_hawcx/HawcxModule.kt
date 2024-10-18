@@ -13,6 +13,10 @@ import com.hawcx.auth.SignUp
 import com.hawcx.auth.Restore
 import com.hawcx.utils.AuthErrorHandler
 import com.hawcx.utils.AuthErrorHandler.SignInErrorCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 class HawcxModule(private val context: Context) : MethodChannel.MethodCallHandler {
 
@@ -86,6 +90,9 @@ class HawcxModule(private val context: Context) : MethodChannel.MethodCallHandle
                     result.error("ERROR", "Email and OTP are required", null)
                 }
             }
+            "getLastUser" -> {
+                getLastUser(result)
+            }
             else -> {
                 result.notImplemented()
             }
@@ -152,12 +159,13 @@ class HawcxModule(private val context: Context) : MethodChannel.MethodCallHandle
 
     fun getLastUser(result: MethodChannel.Result) {
         try {
-            val lastUser = signIn?.getLastUser() ?: ""
+            val lastUser = signIn?.getLastUser()
             result.success(lastUser)
         } catch (e: Exception) {
             result.error("GET_LAST_USER_ERROR", "Failed to get last user: ${e.message}", null)
         }
     }
+    
 
 
     public fun handleVerifyOTP(username: String, otp: String, result: MethodChannel.Result) {
@@ -187,11 +195,11 @@ class HawcxModule(private val context: Context) : MethodChannel.MethodCallHandle
             }
 
             override fun onSuccessfulLogin(username: String) {
-                //result.success("Login successful for user: $username")
+                result.success("Login successful for user: $username")
             }
 
             override fun showError(errorCode: AuthErrorHandler.SignInErrorCode, message: String) {
-                //result.error("CHECK_LAST_USER_ERROR", "Check last user failed: $message", null)
+                result.error("CHECK_LAST_USER_ERROR", "Check last user failed: $message", null)
             }
 
             override fun showError(message: String) {
@@ -246,7 +254,7 @@ class HawcxModule(private val context: Context) : MethodChannel.MethodCallHandle
                 }
 
                 override fun onAuthenticationSucceeded(authResult: BiometricPrompt.AuthenticationResult) {
-                    result.success("Biometric login successful")
+                    //result.success("Biometric login successful")
                     callback.run()
                 }
 

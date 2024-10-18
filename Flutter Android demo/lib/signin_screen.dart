@@ -24,8 +24,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> handleBiometricLogin() async {
     try {
-      final result = await platform.invokeMethod('checkLastUser');
-      if (result == 'Biometric login successful') {
+      final String result = await platform.invokeMethod('checkLastUser');
+      if (result.contains('Login successful for user')) {
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         setState(() {

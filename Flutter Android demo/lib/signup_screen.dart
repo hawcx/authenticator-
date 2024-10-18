@@ -17,7 +17,6 @@ class _SignupScreenState extends State<SignupScreen> {
   void initState() {
     super.initState();
     checkLastUser(); // Similar to useEffect in React Native
-    print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzsignup");
   }
 
   // Email validation
@@ -27,16 +26,29 @@ class _SignupScreenState extends State<SignupScreen> {
 
   // Check if a user exists and handle biometric login
   Future<void> checkLastUser() async {
+    setState(() {
+      _loading = true; // Show loading indicator
+    });
+
     try {
       final String result = await platform.invokeMethod('checkLastUser');
       print(result);
-      if (result == 'Biometric login successful') {
+      if (result.contains("Login successful for user")) {
+        setState(() {
+          _loading = false; // Hide loading indicator
+        });
         Navigator.pushReplacementNamed(context, '/home');
       } else if (result == 'SHOW_EMAIL_SIGN_IN_SCREEN') {
+        setState(() {
+          _loading = false; // Hide loading indicator
+        });
         Navigator.pushReplacementNamed(context, '/signin');
       }
     } on PlatformException catch (e) {
       print("Error checking last user: ${e.message}");
+      setState(() {
+        _loading = false; // Hide loading indicator
+      });
     }
   }
 
@@ -83,36 +95,45 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Sign Up')),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Enter your Email to Sign Up:',
-              style: TextStyle(fontSize: 18),
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Enter your Email to Sign Up:',
+                  style: TextStyle(fontSize: 18),
+                ),
+                SizedBox(height: 12),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _loading ? null : handleSignup,
+                  child: Text(_loading ? 'Signing Up...' : 'Sign Up'),
+                ),
+                SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/signin'),
+                  child: Text('Already have an account? Sign In'),
+                ),
+              ],
             ),
-            SizedBox(height: 12),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
+          ),
+          // Show a circular progress indicator when _loading is true
+          if (_loading)
+            Center(
+              child: CircularProgressIndicator(),
             ),
-            SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _loading ? null : handleSignup,
-              child: Text(_loading ? 'Signing Up...' : 'Sign Up'),
-            ),
-            SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/signin'),
-              child: Text('Already have an account? Sign In'),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

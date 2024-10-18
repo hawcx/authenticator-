@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, Alert, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Button, Alert, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { NativeModules } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
@@ -26,46 +26,63 @@ type Props = {
 const SignInScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [showManualSignIn, setShowManualSignIn] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Trigger biometric login when the component mounts
-    HawcxModule.checkLastUser()
-      .then((result: string) => {
-        if (result === 'Biometric login successful') {
-          // If the user is successfully logged in, navigate to Home
-          navigation.replace('Home');
-        } else {
-          // If biometric authentication fails, show manual sign-in form
-          setShowManualSignIn(true);
-        }
-      })
-      .catch((error: any) => {
-        // If biometric fails, show the manual sign-in form
-        Alert.alert('Biometric Login Failed');
-        setShowManualSignIn(true);
-      });
+    checkLastUser();
   }, []);
 
+  const checkLastUser = () =>{
+    setLoading(true);
+    HawcxModule.checkLastUser()
+    .then((result: string) => {
+      if (result.includes('Login successful for user')) {
+        // If the user is successfully logged in, navigate to Home
+        setLoading(false);
+        navigation.replace('Home');
+      } else {
+        // If biometric authentication fails, show manual sign-in form
+        setLoading(false);
+        setShowManualSignIn(true);
+      }
+    })
+    .catch((error: any) => {
+      // If biometric fails, show the manual sign-in form
+      Alert.alert('Biometric Login Failed');
+      setLoading(false);
+      setShowManualSignIn(true);
+    });
+  }
+
   const handleManualSignIn = () => {
+    setLoading(true);
     // Call your backend or authentication API for manual sign-in
     if (email) {
       // Call the signIn method from HawcxModule or a separate API
       HawcxModule.signIn(email)
         .then(() => {
           // Navigate to home if login is successful
-          navigation.replace('Home');
+          checkLastUser();
         })
         .catch((error: any) => {
+          setLoading(false);
           Alert.alert('Sign In Error', error.message || 'Failed to sign in');
         });
     } else {
+      setLoading(false);
       Alert.alert('Error', 'Please enter your email');
     }
   };
 
   return (
     <View style={styles.container}>
-      {showManualSignIn ? (
+      {loading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#ffffff" />
+          <Text style={styles.text}>Loading...</Text>
+        </View>
+      ) : showManualSignIn ? (
         <>
           <Text style={styles.title}>Sign In</Text>
           <TextInput
@@ -85,7 +102,7 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Link to navigate to AccountRestore Screen */}
-          <TouchableOpacity onPress={() => navigation.navigate('AccountRestore')}>
+          <TouchableOpacity onPress={() => navigation.replace('AccountRestore')}>
             <Text style={styles.link}>Restore your account</Text>
           </TouchableOpacity>
         </>
@@ -110,6 +127,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'white',
     marginBottom: 20,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
     borderWidth: 1,

@@ -8,7 +8,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const platform = MethodChannel('hawcx');
+  static const platform = MethodChannel('com.example.flutter_hawcx/hawcx');
   String username = '';
   final List<Map<String, String>> notifications = [
     {'id': '1', 'text': 'New login from Android device on April 27, 2024'},
@@ -19,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // getLastUser();
+    getLastUser();
   }
 
   void getLastUser() async {
